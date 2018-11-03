@@ -34,12 +34,23 @@
             this.skinProgressBar1 = new CCWin.SkinControl.SkinProgressBar();
             this.labelTotalTime = new System.Windows.Forms.Label();
             this.timer1 = new System.Windows.Forms.Timer(this.components);
+            this.txbSerialNumber = new CCWin.SkinControl.SkinTextBox();
+            this.label1 = new System.Windows.Forms.Label();
+            this.groupBox1 = new System.Windows.Forms.GroupBox();
+            this.groupBox2 = new System.Windows.Forms.GroupBox();
+            this.groupBox3 = new System.Windows.Forms.GroupBox();
+            this.btnPrintHandover = new System.Windows.Forms.Button();
+            this.btnPrintBoxsign = new System.Windows.Forms.Button();
+            this.btnPackingList = new System.Windows.Forms.Button();
+            this.groupBox1.SuspendLayout();
+            this.groupBox2.SuspendLayout();
+            this.groupBox3.SuspendLayout();
             this.SuspendLayout();
             // 
             // btnStart
             // 
             this.btnStart.Font = new System.Drawing.Font("宋体", 14.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(134)));
-            this.btnStart.Location = new System.Drawing.Point(74, 77);
+            this.btnStart.Location = new System.Drawing.Point(18, 20);
             this.btnStart.Name = "btnStart";
             this.btnStart.Size = new System.Drawing.Size(100, 33);
             this.btnStart.TabIndex = 0;
@@ -53,7 +64,7 @@
             this.labelFiles.BackColor = System.Drawing.SystemColors.Control;
             this.labelFiles.Font = new System.Drawing.Font("宋体", 15F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(134)));
             this.labelFiles.ForeColor = System.Drawing.Color.DarkRed;
-            this.labelFiles.Location = new System.Drawing.Point(57, 27);
+            this.labelFiles.Location = new System.Drawing.Point(6, 77);
             this.labelFiles.Name = "labelFiles";
             this.labelFiles.Size = new System.Drawing.Size(149, 20);
             this.labelFiles.TabIndex = 1;
@@ -67,7 +78,7 @@
             this.skinProgressBar1.BarBack = null;
             this.skinProgressBar1.BarRadiusStyle = CCWin.SkinClass.RoundStyle.All;
             this.skinProgressBar1.ForeColor = System.Drawing.Color.Red;
-            this.skinProgressBar1.Location = new System.Drawing.Point(32, 137);
+            this.skinProgressBar1.Location = new System.Drawing.Point(6, 75);
             this.skinProgressBar1.Name = "skinProgressBar1";
             this.skinProgressBar1.RadiusStyle = CCWin.SkinClass.RoundStyle.All;
             this.skinProgressBar1.Size = new System.Drawing.Size(204, 23);
@@ -76,33 +87,160 @@
             // labelTotalTime
             // 
             this.labelTotalTime.AutoSize = true;
-            this.labelTotalTime.Location = new System.Drawing.Point(30, 173);
+            this.labelTotalTime.Location = new System.Drawing.Point(8, 118);
             this.labelTotalTime.Name = "labelTotalTime";
-            this.labelTotalTime.Size = new System.Drawing.Size(0, 12);
+            this.labelTotalTime.Size = new System.Drawing.Size(35, 12);
             this.labelTotalTime.TabIndex = 4;
+            this.labelTotalTime.Text = "*****";
             // 
             // timer1
             // 
             this.timer1.Interval = 1000;
             this.timer1.Tick += new System.EventHandler(this.timer1_Tick);
             // 
+            // txbSerialNumber
+            // 
+            this.txbSerialNumber.BackColor = System.Drawing.Color.Transparent;
+            this.txbSerialNumber.DownBack = null;
+            this.txbSerialNumber.Icon = null;
+            this.txbSerialNumber.IconIsButton = false;
+            this.txbSerialNumber.IconMouseState = CCWin.SkinClass.ControlState.Normal;
+            this.txbSerialNumber.IsPasswordChat = '\0';
+            this.txbSerialNumber.IsSystemPasswordChar = false;
+            this.txbSerialNumber.Lines = new string[] {
+        "1"};
+            this.txbSerialNumber.Location = new System.Drawing.Point(94, 24);
+            this.txbSerialNumber.Margin = new System.Windows.Forms.Padding(0);
+            this.txbSerialNumber.MaxLength = 32767;
+            this.txbSerialNumber.MinimumSize = new System.Drawing.Size(28, 28);
+            this.txbSerialNumber.MouseBack = null;
+            this.txbSerialNumber.MouseState = CCWin.SkinClass.ControlState.Normal;
+            this.txbSerialNumber.Multiline = false;
+            this.txbSerialNumber.Name = "txbSerialNumber";
+            this.txbSerialNumber.NormlBack = null;
+            this.txbSerialNumber.Padding = new System.Windows.Forms.Padding(5);
+            this.txbSerialNumber.ReadOnly = false;
+            this.txbSerialNumber.ScrollBars = System.Windows.Forms.ScrollBars.None;
+            this.txbSerialNumber.Size = new System.Drawing.Size(71, 28);
+            // 
+            // 
+            // 
+            this.txbSerialNumber.SkinTxt.BorderStyle = System.Windows.Forms.BorderStyle.None;
+            this.txbSerialNumber.SkinTxt.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.txbSerialNumber.SkinTxt.Font = new System.Drawing.Font("微软雅黑", 14.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(134)));
+            this.txbSerialNumber.SkinTxt.ForeColor = System.Drawing.SystemColors.HotTrack;
+            this.txbSerialNumber.SkinTxt.Location = new System.Drawing.Point(5, 5);
+            this.txbSerialNumber.SkinTxt.Name = "BaseText";
+            this.txbSerialNumber.SkinTxt.Size = new System.Drawing.Size(61, 26);
+            this.txbSerialNumber.SkinTxt.TabIndex = 0;
+            this.txbSerialNumber.SkinTxt.Text = "1";
+            this.txbSerialNumber.SkinTxt.WaterColor = System.Drawing.Color.FromArgb(((int)(((byte)(127)))), ((int)(((byte)(127)))), ((int)(((byte)(127)))));
+            this.txbSerialNumber.SkinTxt.WaterText = "";
+            this.txbSerialNumber.TabIndex = 5;
+            this.txbSerialNumber.Text = "1";
+            this.txbSerialNumber.TextAlign = System.Windows.Forms.HorizontalAlignment.Left;
+            this.txbSerialNumber.WaterColor = System.Drawing.Color.FromArgb(((int)(((byte)(127)))), ((int)(((byte)(127)))), ((int)(((byte)(127)))));
+            this.txbSerialNumber.WaterText = "";
+            this.txbSerialNumber.WordWrap = true;
+            // 
+            // label1
+            // 
+            this.label1.AutoSize = true;
+            this.label1.Font = new System.Drawing.Font("宋体", 14.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(134)));
+            this.label1.Location = new System.Drawing.Point(6, 33);
+            this.label1.Name = "label1";
+            this.label1.Size = new System.Drawing.Size(85, 19);
+            this.label1.TabIndex = 6;
+            this.label1.Text = "序号起始";
+            // 
+            // groupBox1
+            // 
+            this.groupBox1.Controls.Add(this.labelFiles);
+            this.groupBox1.Controls.Add(this.label1);
+            this.groupBox1.Controls.Add(this.txbSerialNumber);
+            this.groupBox1.Location = new System.Drawing.Point(12, 23);
+            this.groupBox1.Name = "groupBox1";
+            this.groupBox1.Size = new System.Drawing.Size(467, 109);
+            this.groupBox1.TabIndex = 7;
+            this.groupBox1.TabStop = false;
+            this.groupBox1.Text = "步骤一:准备";
+            // 
+            // groupBox2
+            // 
+            this.groupBox2.BackColor = System.Drawing.SystemColors.Control;
+            this.groupBox2.Controls.Add(this.btnStart);
+            this.groupBox2.Controls.Add(this.skinProgressBar1);
+            this.groupBox2.Controls.Add(this.labelTotalTime);
+            this.groupBox2.Location = new System.Drawing.Point(12, 158);
+            this.groupBox2.Name = "groupBox2";
+            this.groupBox2.Size = new System.Drawing.Size(224, 148);
+            this.groupBox2.TabIndex = 8;
+            this.groupBox2.TabStop = false;
+            this.groupBox2.Text = "步骤二:开始";
+            // 
+            // groupBox3
+            // 
+            this.groupBox3.Controls.Add(this.btnPrintHandover);
+            this.groupBox3.Controls.Add(this.btnPrintBoxsign);
+            this.groupBox3.Controls.Add(this.btnPackingList);
+            this.groupBox3.Location = new System.Drawing.Point(257, 158);
+            this.groupBox3.Name = "groupBox3";
+            this.groupBox3.Size = new System.Drawing.Size(222, 148);
+            this.groupBox3.TabIndex = 9;
+            this.groupBox3.TabStop = false;
+            this.groupBox3.Text = "步骤三:打印";
+            // 
+            // btnPrintHandover
+            // 
+            this.btnPrintHandover.Font = new System.Drawing.Font("宋体", 14.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(134)));
+            this.btnPrintHandover.Location = new System.Drawing.Point(57, 109);
+            this.btnPrintHandover.Name = "btnPrintHandover";
+            this.btnPrintHandover.Size = new System.Drawing.Size(117, 33);
+            this.btnPrintHandover.TabIndex = 3;
+            this.btnPrintHandover.Text = "打印交接单";
+            this.btnPrintHandover.UseVisualStyleBackColor = true;
+            this.btnPrintHandover.Click += new System.EventHandler(this.btnPrintHandover_Click);
+            // 
+            // btnPrintBoxsign
+            // 
+            this.btnPrintBoxsign.Font = new System.Drawing.Font("宋体", 14.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(134)));
+            this.btnPrintBoxsign.Location = new System.Drawing.Point(57, 65);
+            this.btnPrintBoxsign.Name = "btnPrintBoxsign";
+            this.btnPrintBoxsign.Size = new System.Drawing.Size(117, 33);
+            this.btnPrintBoxsign.TabIndex = 2;
+            this.btnPrintBoxsign.Text = "打印箱贴";
+            this.btnPrintBoxsign.UseVisualStyleBackColor = true;
+            // 
+            // btnPackingList
+            // 
+            this.btnPackingList.Font = new System.Drawing.Font("宋体", 14.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(134)));
+            this.btnPackingList.Location = new System.Drawing.Point(57, 20);
+            this.btnPackingList.Name = "btnPackingList";
+            this.btnPackingList.Size = new System.Drawing.Size(117, 33);
+            this.btnPackingList.TabIndex = 1;
+            this.btnPackingList.Text = "打印装箱单";
+            this.btnPackingList.UseVisualStyleBackColor = true;
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 12F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.AutoSize = true;
-            this.ClientSize = new System.Drawing.Size(293, 264);
-            this.Controls.Add(this.labelTotalTime);
-            this.Controls.Add(this.skinProgressBar1);
-            this.Controls.Add(this.labelFiles);
-            this.Controls.Add(this.btnStart);
+            this.ClientSize = new System.Drawing.Size(584, 349);
+            this.Controls.Add(this.groupBox3);
+            this.Controls.Add(this.groupBox2);
+            this.Controls.Add(this.groupBox1);
             this.MaximizeBox = false;
             this.Name = "Form1";
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
             this.Text = "Form1";
             this.Load += new System.EventHandler(this.Form1_Load);
+            this.groupBox1.ResumeLayout(false);
+            this.groupBox1.PerformLayout();
+            this.groupBox2.ResumeLayout(false);
+            this.groupBox2.PerformLayout();
+            this.groupBox3.ResumeLayout(false);
             this.ResumeLayout(false);
-            this.PerformLayout();
 
         }
 
@@ -113,6 +251,14 @@
         private CCWin.SkinControl.SkinProgressBar skinProgressBar1;
         private System.Windows.Forms.Label labelTotalTime;
         private System.Windows.Forms.Timer timer1;
+        private CCWin.SkinControl.SkinTextBox txbSerialNumber;
+        private System.Windows.Forms.Label label1;
+        private System.Windows.Forms.GroupBox groupBox1;
+        private System.Windows.Forms.GroupBox groupBox2;
+        private System.Windows.Forms.GroupBox groupBox3;
+        private System.Windows.Forms.Button btnPrintHandover;
+        private System.Windows.Forms.Button btnPrintBoxsign;
+        private System.Windows.Forms.Button btnPackingList;
     }
 }
 

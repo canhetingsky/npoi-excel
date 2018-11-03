@@ -1,11 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
-using System.Drawing;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 using NPOI.SS.UserModel;
 using NPOI.HSSF.UserModel;
@@ -13,9 +6,10 @@ using NPOI.XSSF.UserModel;
 using System.IO;
 using System.Diagnostics;
 using System.Threading;
-using System.Text.RegularExpressions;
 using System.Collections;
 using System.Runtime.InteropServices;
+using System.Drawing.Printing;
+//using Spire.Xls;
 
 namespace npoi_excel
 {
@@ -27,11 +21,6 @@ namespace npoi_excel
             public string order_number;
             public string order_name;
             public string order_shipping_info;
-            //public int order_A_number;
-            //public int order_B_number;
-            //public int order_C_number;
-            //public int order_D_number;
-            //public int order_sum_number;
             public string order_A_number;
             public string order_B_number;
             public string order_C_number;
@@ -43,7 +32,8 @@ namespace npoi_excel
         private string folderPath = null;   //要处理的目标文件夹
         private string[] fileNames = null;   //目标文件夹下的所有符合文件
         private int serialNumber = 0 ;      //序号，自增
-
+        private int initialSerialNumber = 1;
+        new Thread Handle;   //处理excel的线程
         public Form1()
         {
             InitializeComponent();
@@ -52,10 +42,38 @@ namespace npoi_excel
         private void Form1_Load(object sender, EventArgs e)
         {
             btnStart.Enabled = false;
+            txbSerialNumber.Text = initialSerialNumber.ToString();
         }
         private void btnStart_Click(object sender, EventArgs e)
         {
-            Thread Handle = new Thread(startProcessing);
+            try
+            {
+                initialSerialNumber = Convert.ToInt32(txbSerialNumber.Text);
+                serialNumber = initialSerialNumber - 1;
+            }
+            catch (Exception)
+            {
+                MessageBox.Show("请输入正确的格式", "起始序号输入错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return;
+            }
+            
+            fileNames = Directory.GetFiles(folderPath, "*.xls", SearchOption.AllDirectories);   //得到目标文件夹下的所有Excel文件（包括子文件夹）
+            Array.Sort(fileNames, new FileNameSort());  //对文件夹中的内容进行大小排序
+
+            /*当使用星号通配符searchPattern如"*.txt"，指定的扩展中的字符数会影响搜索，如下所示：
+            如果指定的扩展名为 3 个字符，该方法将返回具有指定扩展名以扩展名的文件。 例如，"*.xls"返回"book.xls"和"book.xlsx"。
+            在所有其他情况下，该方法返回与指定的扩展完全匹配的文件。 例如，"*.ai"返回"file.ai"而不是"file.aif"。*/
+
+            skinProgressBar1.Maximum = fileNames.Length;
+
+            string subPath = folderPath + "/实物ID箱签/";
+            if (false == System.IO.Directory.Exists(subPath))
+            {
+                //创建实物ID箱签文件夹
+                System.IO.Directory.CreateDirectory(subPath);
+            }
+
+            Handle = new Thread(startProcessing);
             Handle.Start();
             timer1.Start();
         }
@@ -73,7 +91,7 @@ namespace npoi_excel
                 serialNumber++;
                 if (skinProgressBar1.InvokeRequired)//不同线程为true，所以这里是true
                 {
-                    BeginInvoke(new Action<int>(target => { skinProgressBar1.Value = target; }), serialNumber);
+                    BeginInvoke(new Action<int>(target => { skinProgressBar1.Value = target; }), serialNumber - initialSerialNumber + 1);
                 }
                 Debug.Write("@" + serialNumber + file + "\r\n");
                 sheet_Handover = write_HandoverToExcel(sheet_Handover, order);
@@ -84,11 +102,11 @@ namespace npoi_excel
             workbook_Handover.Write(file_Handover);
             file_Handover.Close();
             workbook_Handover.Close();
+            Handle.Abort();
         }
 
         private Order_t read_OrderFromExcel(string fileName)
         {
-            
             Order_t file_order = new Order_t();
             IWorkbook workbook = null;  //新建IWorkbook对象
             FileStream fileStream = new FileStream(fileName, FileMode.Open, FileAccess.Read);
@@ -149,33 +167,50 @@ namespace npoi_excel
             modeFile_Boxsign.Close();
 
             XSSFSheet modeSheet_Boxsign = (XSSFSheet)workbook_Boxsign.GetSheetAt(0); //获取工作表
-            modeSheet_Boxsign.GetRow(0).GetCell(1).SetCellValue(String.Format("{0:0000}", serialNumber));     //填写序号
-            modeSheet_Boxsign.GetRow(1).GetCell(1).SetCellValue(order.order_number);     //填写订单编号
-            modeSheet_Boxsign.GetRow(0).GetCell(4).SetCellValue(order.order_name);       //填写变电站或馈线名称
+            modeSheet_Boxsign.GetRow(0).GetCell(1).SetCellValue(String.Format("{0:0000}", serialNumber));     //填写序号(B1)
+            modeSheet_Boxsign.GetRow(2).GetCell(1).SetCellValue(order.order_number);     //填写订单编号（B3）
+            modeSheet_Boxsign.GetRow(0).GetCell(3).SetCellValue(order.order_name);       //填写变电站或馈线名称(D1)
 
-            string[] str = { " " };
-            string[] string_split_word = order.order_shipping_info.Split(str, StringSplitOptions.RemoveEmptyEntries);
-            if (string_split_word.Length == 4)
+            //string[] str = { " ", "；" };
+            //string[] string_split_word = order.order_shipping_info.Split(str, StringSplitOptions.RemoveEmptyEntries);
+            //if (string_split_word.Length == 4)
+            //{
+            //    modeSheet_Boxsign.GetRow(4).GetCell(1).SetCellValue(string_split_word[3] + string_split_word[0]);   //填写收货地址及收货公司（B5）
+            //    modeSheet_Boxsign.GetRow(5).GetCell(1).SetCellValue(string_split_word[1]);   //填写联系人(B6)
+            //    modeSheet_Boxsign.GetRow(5).GetCell(3).SetCellValue(string_split_word[2]);   //填写电话(D6)
+            //}
+            //else if (string_split_word.Length == 3) //无收货单位
+            //{
+            //    modeSheet_Boxsign.GetRow(4).GetCell(1).SetCellValue(string_split_word[2]);   //填写收货地址(无收货单位)（B5）
+            //    modeSheet_Boxsign.GetRow(5).GetCell(1).SetCellValue(string_split_word[0]);   //填写联系人(B6)
+            //    modeSheet_Boxsign.GetRow(5).GetCell(3).SetCellValue(string_split_word[1]);   //填写电话(D6)
+            //}
+            //使用ASCII码提取电话号码（数字）
+            string phoneNumber = null;
+            string excludephoneNumber = null;
+            foreach (char c in order.order_shipping_info)
             {
-                modeSheet_Boxsign.GetRow(2).GetCell(1).SetCellValue(string_split_word[0]);   //填写收货单位
-                modeSheet_Boxsign.GetRow(5).GetCell(1).SetCellValue(string_split_word[1]);   //填写联系人
-                modeSheet_Boxsign.GetRow(5).GetCell(4).SetCellValue(string_split_word[2]);   //填写电话
-                modeSheet_Boxsign.GetRow(4).GetCell(1).SetCellValue(string_split_word[3]);   //填写发货地址
+                if (Convert.ToInt32(c) >= 48 && Convert.ToInt32(c) <= 57)
+                {
+                    phoneNumber += c;
+                }
+                else
+                {
+                    excludephoneNumber += c;
+                }
             }
-            else if (string_split_word.Length == 3) //无收货单位
-            {
-                modeSheet_Boxsign.GetRow(2).GetCell(1).SetCellValue(" ");   //填写收货单位
-                modeSheet_Boxsign.GetRow(5).GetCell(1).SetCellValue(string_split_word[0]);   //填写联系人
-                modeSheet_Boxsign.GetRow(5).GetCell(4).SetCellValue(string_split_word[1]);   //填写电话
-                modeSheet_Boxsign.GetRow(4).GetCell(1).SetCellValue(string_split_word[2]);   //填写发货地址
-            }
-            
+            string[] str = { " ", "；" };
+            string[] string_split_word = excludephoneNumber.Split(str, StringSplitOptions.RemoveEmptyEntries);
+            //TODO:get person's name and address
 
-            modeSheet_Boxsign.GetRow(7).GetCell(1).SetCellValue(order.order_A_number);       //填写A型标签数量
-            modeSheet_Boxsign.GetRow(8).GetCell(1).SetCellValue(order.order_B_number);       //填写B型标签数量
-            modeSheet_Boxsign.GetRow(9).GetCell(1).SetCellValue(order.order_C_number);       //填写C型标签数量
-            modeSheet_Boxsign.GetRow(10).GetCell(1).SetCellValue(order.order_D_number);      //填写D型标签数量
-            modeSheet_Boxsign.GetRow(10).GetCell(4).SetCellValue(order.order_sum_number);   //填写总数量
+            modeSheet_Boxsign.GetRow(4).GetCell(1).SetCellValue(string_split_word[3] + string_split_word[0]);   //填写收货地址及收货公司（B5）
+            modeSheet_Boxsign.GetRow(5).GetCell(1).SetCellValue(string_split_word[1]);   //填写联系人(B6)
+            modeSheet_Boxsign.GetRow(5).GetCell(3).SetCellValue(string_split_word[2]);   //填写电话(D6)
+
+            modeSheet_Boxsign.GetRow(7).GetCell(1).SetCellValue(order.order_A_number);       //填写A型标签数量（B8）
+            modeSheet_Boxsign.GetRow(8).GetCell(1).SetCellValue(order.order_B_number);       //填写B型标签数量（B9）
+            modeSheet_Boxsign.GetRow(9).GetCell(1).SetCellValue(order.order_C_number);       //填写C型标签数量（B10）
+            modeSheet_Boxsign.GetRow(10).GetCell(1).SetCellValue(order.order_D_number);      //填写D型标签数量（B11）
 
             
             FileStream file_Boxsign = new FileStream(folderPath + "/实物ID箱签/" + String.Format("{0:0000}", serialNumber) + "-" + order.order_number + "-实物ID箱签.xlsx", FileMode.Create);
@@ -206,23 +241,7 @@ namespace npoi_excel
             {
                 folderPath = loadFolder.SelectedPath;
                 labelFiles.Text = folderPath;
-                fileNames = Directory.GetFiles(folderPath, "*.xls", SearchOption.AllDirectories);
-                //对文件夹中的内容进行大小排序
-                Array.Sort(fileNames, new FileNameSort());
-
-                /*当使用星号通配符searchPattern如"*.txt"，指定的扩展中的字符数会影响搜索，如下所示：
-                如果指定的扩展名为 3 个字符，该方法将返回具有指定扩展名以扩展名的文件。 例如，"*.xls"返回"book.xls"和"book.xlsx"。
-                在所有其他情况下，该方法返回与指定的扩展完全匹配的文件。 例如，"*.ai"返回"file.ai"而不是"file.aif"。*/
-
-                skinProgressBar1.Maximum = fileNames.Length;
-                btnStart.Enabled = true ;
-
-                string subPath = folderPath + "/实物ID箱签/";
-                if (false == System.IO.Directory.Exists(subPath))
-                {
-                    //创建pic文件夹
-                    System.IO.Directory.CreateDirectory(subPath);
-                }
+                btnStart.Enabled = true;
             }
         }
 
@@ -261,6 +280,35 @@ namespace npoi_excel
             {
                 timer1.Stop();
             }
+        }
+
+        private void btnPrintHandover_Click(object sender, EventArgs e)
+        {
+            //Workbook workbook = new Workbook();
+            //workbook.LoadFromFile(folderPath + "/" + String.Format("{0:0000}", serialNumber) + "实物ID交接单.xlsx");
+
+            //Worksheet sheet = workbook.Worksheets[0];
+            //sheet.PageSetup.PrintArea = "A7:T8";
+            //sheet.PageSetup.PrintTitleRows = "$1:$1";
+            //sheet.PageSetup.FitToPagesWide = 1;
+            //sheet.PageSetup.FitToPagesTall = 1;
+            ////sheet.PageSetup.Orientation = PageOrientationType.Landscape;
+            ////sheet.PageSetup.PaperSize = PaperSizeType.PaperA3;
+
+            //PrintDialog dialog = new PrintDialog();
+            //dialog.AllowPrintToFile = true;
+            //dialog.AllowCurrentPage = true;
+            //dialog.AllowSomePages = true;
+            //dialog.AllowSelection = true;
+            //dialog.UseEXDialog = true;
+            //dialog.PrinterSettings.Duplex = Duplex.Simplex;
+            //dialog.PrinterSettings.FromPage = 0;
+            //dialog.PrinterSettings.ToPage = 8;
+            //dialog.PrinterSettings.PrintRange = PrintRange.SomePages;
+            //workbook.PrintDialog = dialog;
+            //PrintDocument pd = workbook.PrintDocument;
+            //if (dialog.ShowDialog() == DialogResult.OK)
+            //{ pd.Print(); }
         }
     }
 }

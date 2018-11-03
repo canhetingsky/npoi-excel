@@ -34,7 +34,7 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="CSkin">
-      <HintPath>..\..\..\exercise\C sharp\C#\CSkin 15.3.10.1\CSkin 4.0\CSkin.dll</HintPath>
+      <HintPath>J:\1.我的笔记本\资源收藏E盘\exercise\C sharp\C#\CSkin 16.1.14.2\CSkin 4.0\CSkin.dll</HintPath>
     </Reference>
     <Reference Include="ICSharpCode.SharpZipLib, Version=0.6.0.0, Culture=neutral, PublicKeyToken=1b03e6acf1164f73">
       <SpecificVersion>False</SpecificVersion>
