@@ -167,22 +167,23 @@ namespace npoi_excel
 
             XSSFSheet modeSheet_Boxsign = (XSSFSheet)workbook_Boxsign.GetSheetAt(0); //获取工作表
             modeSheet_Boxsign.GetRow(0).GetCell(1).SetCellValue(String.Format("{0:0000}", serialNumber));     //填写序号(B1)
-            modeSheet_Boxsign.GetRow(2).GetCell(1).SetCellValue(order.order_number);     //填写订单编号（B3）
-            modeSheet_Boxsign.GetRow(0).GetCell(3).SetCellValue(order.order_name);       //填写变电站或馈线名称(D1)
+            modeSheet_Boxsign.GetRow(1).GetCell(1).SetCellValue(order.order_number);     //填写订单编号（B2）
+            modeSheet_Boxsign.GetRow(0).GetCell(4).SetCellValue(order.order_name);       //填写变电站或馈线名称(E1)
 
             string[] str = { " ", "；" };
             string[] string_split_word = order.order_shipping_info.Split(str, StringSplitOptions.RemoveEmptyEntries);
             if (string_split_word.Length == 4)
             {
-                modeSheet_Boxsign.GetRow(4).GetCell(1).SetCellValue(string_split_word[0] + string_split_word[1]);   //填写收货地址及收货公司（B5）
+                modeSheet_Boxsign.GetRow(2).GetCell(1).SetCellValue(string_split_word[0]);   //填写收货公司（B3）
+                modeSheet_Boxsign.GetRow(4).GetCell(1).SetCellValue(string_split_word[1]);   //填写收货地址（B5）
                 modeSheet_Boxsign.GetRow(5).GetCell(1).SetCellValue(string_split_word[2]);   //填写联系人(B6)
-                modeSheet_Boxsign.GetRow(5).GetCell(3).SetCellValue(string_split_word[3]);   //填写电话(D6)
+                modeSheet_Boxsign.GetRow(5).GetCell(4).SetCellValue(string_split_word[3]);   //填写电话(E6)
             }
             else if (string_split_word.Length == 3) //无收货单位
             {
                 modeSheet_Boxsign.GetRow(4).GetCell(1).SetCellValue(string_split_word[0]);   //填写收货地址(无收货单位)（B5）
                 modeSheet_Boxsign.GetRow(5).GetCell(1).SetCellValue(string_split_word[1]);   //填写联系人(B6)
-                modeSheet_Boxsign.GetRow(5).GetCell(3).SetCellValue(string_split_word[2]);   //填写电话(D6)
+                modeSheet_Boxsign.GetRow(5).GetCell(4).SetCellValue(string_split_word[2]);   //填写电话(E6)
             }
 
             //使用ASCII码提取电话号码（数字）

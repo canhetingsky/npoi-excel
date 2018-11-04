@@ -1,5 +1,9 @@
 # npoi-excel
 
+此版本为早期模板（初始模板）的最终处理程序。
+
+发货信息栏应为：（公司 地址 姓名 手机号）或者（地址 姓名 手机号）
+
 参考
 
 1. [C#项目中操作Excel文件——使用NPOI库](https://blog.csdn.net/dcrmg/article/details/52356236) 
