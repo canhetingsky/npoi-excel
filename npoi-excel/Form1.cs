@@ -122,7 +122,7 @@ namespace npoi_excel
             ISheet sheet = workbook.GetSheetAt(0);  //获取第一个工作表
             file_order.order_number = sheet.GetRow(1).GetCell(1).ToString();
             file_order.order_name = sheet.GetRow(1).GetCell(4).ToString();
-            file_order.order_shipping_info = sheet.GetRow(3).GetCell(1).ToString();
+            file_order.order_shipping_info = sheet.GetRow(3).GetCell(1).ToString() + sheet.GetRow(3).GetCell(2).ToString() + sheet.GetRow(3).GetCell(3).ToString() + sheet.GetRow(3).GetCell(4).ToString();
 
             file_order.order_A_number = sheet.GetRow(5).GetCell(1).ToString();
             file_order.order_B_number = sheet.GetRow(6).GetCell(1).ToString();
@@ -145,18 +145,17 @@ namespace npoi_excel
 
         private XSSFSheet write_HandoverToExcel(XSSFSheet sheet, Order_t file_order)
         {
-            
-            sheet.GetRow(2 + 4 * serialNumber).GetCell(0).SetCellValue(String.Format("{0:0000}", serialNumber));     //填写序号
-            sheet.GetRow(2 + 4 * serialNumber).GetCell(1).SetCellValue(file_order.order_number);          //填写订单编号
-            sheet.GetRow(2 + 4 * serialNumber).GetCell(2).SetCellValue("A型标签");                   //填写A型标签文本
-            sheet.GetRow(2 + 4 * serialNumber).GetCell(4).SetCellValue(file_order.order_A_number);        //填写A型标签数量
-            sheet.GetRow(2 + 4 * serialNumber + 1).GetCell(2).SetCellValue("B型标签");               //填写B型标签文本
-            sheet.GetRow(2 + 4 * serialNumber + 1).GetCell(4).SetCellValue(file_order.order_B_number);    //填写B型标签数量
-            sheet.GetRow(2 + 4 * serialNumber + 2).GetCell(2).SetCellValue("C型标签");               //填写C型标签文本
-            sheet.GetRow(2 + 4 * serialNumber + 2).GetCell(4).SetCellValue(file_order.order_C_number);    //填写C型标签数量
-            sheet.GetRow(2 + 4 * serialNumber + 3).GetCell(2).SetCellValue("D型标签");              //填写D型标签文本
-            sheet.GetRow(2 + 4 * serialNumber + 3).GetCell(4).SetCellValue(file_order.order_D_number);              //填写D型标签数量
-            sheet.GetRow(2 + 4 * serialNumber).GetCell(3).SetCellValue("1/1");     //填写箱号    
+            sheet.GetRow(2 + 4 * (serialNumber - initialSerialNumber + 1)).GetCell(0).SetCellValue(String.Format("{0:0000}", serialNumber));     //填写序号
+            sheet.GetRow(2 + 4 * (serialNumber - initialSerialNumber + 1)).GetCell(1).SetCellValue(file_order.order_number);          //填写订单编号
+            sheet.GetRow(2 + 4 * (serialNumber - initialSerialNumber + 1)).GetCell(2).SetCellValue("A型标签");                   //填写A型标签文本
+            sheet.GetRow(2 + 4 * (serialNumber - initialSerialNumber + 1)).GetCell(4).SetCellValue(file_order.order_A_number);        //填写A型标签数量
+            sheet.GetRow(2 + 4 * (serialNumber - initialSerialNumber + 1) + 1).GetCell(2).SetCellValue("B型标签");               //填写B型标签文本
+            sheet.GetRow(2 + 4 * (serialNumber - initialSerialNumber + 1) + 1).GetCell(4).SetCellValue(file_order.order_B_number);    //填写B型标签数量
+            sheet.GetRow(2 + 4 * (serialNumber - initialSerialNumber + 1) + 2).GetCell(2).SetCellValue("C型标签");               //填写C型标签文本
+            sheet.GetRow(2 + 4 * (serialNumber - initialSerialNumber + 1) + 2).GetCell(4).SetCellValue(file_order.order_C_number);    //填写C型标签数量
+            sheet.GetRow(2 + 4 * (serialNumber - initialSerialNumber + 1) + 3).GetCell(2).SetCellValue("D型标签");              //填写D型标签文本
+            sheet.GetRow(2 + 4 * (serialNumber - initialSerialNumber + 1) + 3).GetCell(4).SetCellValue(file_order.order_D_number);              //填写D型标签数量
+            sheet.GetRow(2 + 4 * (serialNumber - initialSerialNumber + 1)).GetCell(3).SetCellValue("1/1");     //填写箱号    
             return sheet;
         }
 
@@ -171,47 +170,48 @@ namespace npoi_excel
             modeSheet_Boxsign.GetRow(2).GetCell(1).SetCellValue(order.order_number);     //填写订单编号（B3）
             modeSheet_Boxsign.GetRow(0).GetCell(3).SetCellValue(order.order_name);       //填写变电站或馈线名称(D1)
 
-            //string[] str = { " ", "；" };
-            //string[] string_split_word = order.order_shipping_info.Split(str, StringSplitOptions.RemoveEmptyEntries);
-            //if (string_split_word.Length == 4)
-            //{
-            //    modeSheet_Boxsign.GetRow(4).GetCell(1).SetCellValue(string_split_word[3] + string_split_word[0]);   //填写收货地址及收货公司（B5）
-            //    modeSheet_Boxsign.GetRow(5).GetCell(1).SetCellValue(string_split_word[1]);   //填写联系人(B6)
-            //    modeSheet_Boxsign.GetRow(5).GetCell(3).SetCellValue(string_split_word[2]);   //填写电话(D6)
-            //}
-            //else if (string_split_word.Length == 3) //无收货单位
-            //{
-            //    modeSheet_Boxsign.GetRow(4).GetCell(1).SetCellValue(string_split_word[2]);   //填写收货地址(无收货单位)（B5）
-            //    modeSheet_Boxsign.GetRow(5).GetCell(1).SetCellValue(string_split_word[0]);   //填写联系人(B6)
-            //    modeSheet_Boxsign.GetRow(5).GetCell(3).SetCellValue(string_split_word[1]);   //填写电话(D6)
-            //}
-            //使用ASCII码提取电话号码（数字）
-            string phoneNumber = null;
-            string excludephoneNumber = null;
-            foreach (char c in order.order_shipping_info)
-            {
-                if (Convert.ToInt32(c) >= 48 && Convert.ToInt32(c) <= 57)
-                {
-                    phoneNumber += c;
-                }
-                else
-                {
-                    excludephoneNumber += c;
-                }
-            }
             string[] str = { " ", "；" };
-            string[] string_split_word = excludephoneNumber.Split(str, StringSplitOptions.RemoveEmptyEntries);
-            //TODO:get person's name and address
+            string[] string_split_word = order.order_shipping_info.Split(str, StringSplitOptions.RemoveEmptyEntries);
+            if (string_split_word.Length == 4)
+            {
+                modeSheet_Boxsign.GetRow(4).GetCell(1).SetCellValue(string_split_word[0] + string_split_word[1]);   //填写收货地址及收货公司（B5）
+                modeSheet_Boxsign.GetRow(5).GetCell(1).SetCellValue(string_split_word[2]);   //填写联系人(B6)
+                modeSheet_Boxsign.GetRow(5).GetCell(3).SetCellValue(string_split_word[3]);   //填写电话(D6)
+            }
+            else if (string_split_word.Length == 3) //无收货单位
+            {
+                modeSheet_Boxsign.GetRow(4).GetCell(1).SetCellValue(string_split_word[0]);   //填写收货地址(无收货单位)（B5）
+                modeSheet_Boxsign.GetRow(5).GetCell(1).SetCellValue(string_split_word[1]);   //填写联系人(B6)
+                modeSheet_Boxsign.GetRow(5).GetCell(3).SetCellValue(string_split_word[2]);   //填写电话(D6)
+            }
 
-            modeSheet_Boxsign.GetRow(4).GetCell(1).SetCellValue(string_split_word[3] + string_split_word[0]);   //填写收货地址及收货公司（B5）
-            modeSheet_Boxsign.GetRow(5).GetCell(1).SetCellValue(string_split_word[1]);   //填写联系人(B6)
-            modeSheet_Boxsign.GetRow(5).GetCell(3).SetCellValue(string_split_word[2]);   //填写电话(D6)
+            //使用ASCII码提取电话号码（数字）
+            //string phoneNumber = null;
+            //string excludePhoneNumber = null;
+            //string personName = null;
+            //string excludePersonName = null;
+            //foreach (char c in order.order_shipping_info)
+            //{
+            //    if (Convert.ToInt32(c) >= 48 && Convert.ToInt32(c) <= 57)
+            //    {
+            //        phoneNumber += c;
+            //    }
+            //    else
+            //    {
+            //        excludePhoneNumber += c;
+            //    }
+            //}
+            //string[] str = { " ", "；" };
+            //string[] string_split_word = excludePhoneNumber.Split(str, StringSplitOptions.RemoveEmptyEntries);
+            ////TODO:get person's name and address         
+            //modeSheet_Boxsign.GetRow(4).GetCell(1).SetCellValue(excludePhoneNumber);   //填写收货地址及收货公司（B5）
+            //modeSheet_Boxsign.GetRow(5).GetCell(3).SetCellValue(phoneNumber);   //填写电话(D6)
+
 
             modeSheet_Boxsign.GetRow(7).GetCell(1).SetCellValue(order.order_A_number);       //填写A型标签数量（B8）
             modeSheet_Boxsign.GetRow(8).GetCell(1).SetCellValue(order.order_B_number);       //填写B型标签数量（B9）
             modeSheet_Boxsign.GetRow(9).GetCell(1).SetCellValue(order.order_C_number);       //填写C型标签数量（B10）
             modeSheet_Boxsign.GetRow(10).GetCell(1).SetCellValue(order.order_D_number);      //填写D型标签数量（B11）
-
             
             FileStream file_Boxsign = new FileStream(folderPath + "/实物ID箱签/" + String.Format("{0:0000}", serialNumber) + "-" + order.order_number + "-实物ID箱签.xlsx", FileMode.Create);
             workbook_Boxsign.Write(file_Boxsign);
@@ -250,8 +250,7 @@ namespace npoi_excel
             //调用DLL
             [System.Runtime.InteropServices.DllImport("Shlwapi.dll", CharSet = CharSet.Unicode)]
             private static extern int StrCmpLogicalW(string param1, string param2);
-
-
+            
             //前后文件名进行比较。
             public int Compare(object name1, object name2)
             {
@@ -275,8 +274,8 @@ namespace npoi_excel
         private void timer1_Tick(object sender, EventArgs e)
         {
             count ++;
-            labelTotalTime.Text = "当前进度：" + serialNumber.ToString() + "/" + fileNames.Length + "用时：" + count + "s";
-            if (serialNumber == fileNames.Length)
+            labelTotalTime.Text = "当前进度：" + (serialNumber - initialSerialNumber +1).ToString() + "/" + fileNames.Length + " 用时：" + count + "s";
+            if ((serialNumber - initialSerialNumber + 1) == fileNames.Length)
             {
                 timer1.Stop();
             }
