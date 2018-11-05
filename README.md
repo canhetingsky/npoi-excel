@@ -1,8 +1,12 @@
 # npoi-excel
 
+Microsoft .NET Framework 4.5.2 is required.If it is not installed, go [**here**](https://www.microsoft.com/en-us/download/details.aspx?id=42642) to download it and install  it before starting the application.
+
+Cskin and NPOI (third part library)is also required.  So add these dll files to the project when you start the C# project!
+
 参考
 
-1. [C#项目中操作Excel文件——使用NPOI库](https://blog.csdn.net/dcrmg/article/details/52356236) 
+1. [C#项目中操作Excel文件，使用NPOI库](https://blog.csdn.net/dcrmg/article/details/52356236) 
 
 2. [C# 读取文件夹下文件，按照名字排序](https://blog.csdn.net/u012601647/article/details/71036443?utm_source=itdadao&utm_medium=referral)
 
