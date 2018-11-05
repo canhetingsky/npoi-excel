@@ -145,17 +145,28 @@ namespace npoi_excel
 
         private XSSFSheet write_HandoverToExcel(XSSFSheet sheet, Order_t file_order)
         {
-            sheet.GetRow(2 + 4 * (serialNumber - initialSerialNumber + 1)).GetCell(0).SetCellValue(String.Format("{0:0000}", serialNumber));     //填写序号
-            sheet.GetRow(2 + 4 * (serialNumber - initialSerialNumber + 1)).GetCell(1).SetCellValue(file_order.order_number);          //填写订单编号
-            sheet.GetRow(2 + 4 * (serialNumber - initialSerialNumber + 1)).GetCell(2).SetCellValue("A型标签");                   //填写A型标签文本
-            sheet.GetRow(2 + 4 * (serialNumber - initialSerialNumber + 1)).GetCell(4).SetCellValue(file_order.order_A_number);        //填写A型标签数量
-            sheet.GetRow(2 + 4 * (serialNumber - initialSerialNumber + 1) + 1).GetCell(2).SetCellValue("B型标签");               //填写B型标签文本
-            sheet.GetRow(2 + 4 * (serialNumber - initialSerialNumber + 1) + 1).GetCell(4).SetCellValue(file_order.order_B_number);    //填写B型标签数量
-            sheet.GetRow(2 + 4 * (serialNumber - initialSerialNumber + 1) + 2).GetCell(2).SetCellValue("C型标签");               //填写C型标签文本
-            sheet.GetRow(2 + 4 * (serialNumber - initialSerialNumber + 1) + 2).GetCell(4).SetCellValue(file_order.order_C_number);    //填写C型标签数量
-            sheet.GetRow(2 + 4 * (serialNumber - initialSerialNumber + 1) + 3).GetCell(2).SetCellValue("D型标签");              //填写D型标签文本
-            sheet.GetRow(2 + 4 * (serialNumber - initialSerialNumber + 1) + 3).GetCell(4).SetCellValue(file_order.order_D_number);              //填写D型标签数量
-            sheet.GetRow(2 + 4 * (serialNumber - initialSerialNumber + 1)).GetCell(3).SetCellValue("1/1");     //填写箱号    
+            sheet.GetRow(2 + 4 * (serialNumber - initialSerialNumber + 1)).GetCell(0).SetCellValue(String.Format("{0:0000}", serialNumber));     //填写序号（A*）
+            sheet.GetRow(2 + 4 * (serialNumber - initialSerialNumber + 1)).GetCell(1).SetCellValue(file_order.order_number);          //填写订单编号（B*）
+
+            string[] str = { " ", "；" };
+            string[] string_split_word = order.order_shipping_info.Split(str, StringSplitOptions.RemoveEmptyEntries);
+            if (string_split_word.Length == 4)
+            {
+                sheet.GetRow(2 + 4 * (serialNumber - initialSerialNumber + 1)).GetCell(2).SetCellValue(string_split_word[2]);                   //填写收货人姓名（C*）
+            }
+            else if (string_split_word.Length == 3) //无收货单位
+            {
+                sheet.GetRow(2 + 4 * (serialNumber - initialSerialNumber + 1)).GetCell(2).SetCellValue(string_split_word[1]);                   //填写收货人姓名（C*）
+            }
+            sheet.GetRow(2 + 4 * (serialNumber - initialSerialNumber + 1)).GetCell(3).SetCellValue("A型标签");        //填写A型标签文本（D*）
+            sheet.GetRow(2 + 4 * (serialNumber - initialSerialNumber + 1)).GetCell(5).SetCellValue(file_order.order_A_number);        //填写A型标签数量（F*）
+            sheet.GetRow(2 + 4 * (serialNumber - initialSerialNumber + 1) + 1).GetCell(3).SetCellValue("B型标签");               //填写B型标签文本（D*）
+            sheet.GetRow(2 + 4 * (serialNumber - initialSerialNumber + 1) + 1).GetCell(5).SetCellValue(file_order.order_B_number);    //填写B型标签数量（F*）
+            sheet.GetRow(2 + 4 * (serialNumber - initialSerialNumber + 1) + 2).GetCell(3).SetCellValue("C型标签");               //填写C型标签文本（D*）
+            sheet.GetRow(2 + 4 * (serialNumber - initialSerialNumber + 1) + 2).GetCell(5).SetCellValue(file_order.order_C_number);    //填写C型标签数量（F*）
+            sheet.GetRow(2 + 4 * (serialNumber - initialSerialNumber + 1) + 3).GetCell(3).SetCellValue("D型标签");              //填写D型标签文本（D*）
+            sheet.GetRow(2 + 4 * (serialNumber - initialSerialNumber + 1) + 3).GetCell(5).SetCellValue(file_order.order_D_number);              //填写D型标签数量（F*）
+            sheet.GetRow(2 + 4 * (serialNumber - initialSerialNumber + 1)).GetCell(4).SetCellValue("1/1");     //填写箱号（E*）
             return sheet;
         }
 
