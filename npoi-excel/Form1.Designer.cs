@@ -199,7 +199,6 @@
             this.btnPrintHandover.TabIndex = 3;
             this.btnPrintHandover.Text = "打印交接单";
             this.btnPrintHandover.UseVisualStyleBackColor = true;
-            this.btnPrintHandover.Click += new System.EventHandler(this.btnPrintHandover_Click);
             // 
             // btnPrintBoxsign
             // 

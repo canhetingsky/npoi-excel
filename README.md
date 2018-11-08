@@ -16,3 +16,5 @@ Cskin and NPOI (third part library)is also required.  So add these dll files to 
 
 5. [C#组件系列——又一款Excel处理神器Spire.XLS，你值得拥有](https://www.cnblogs.com/landeanfen/p/5888973.html)
 
+6. [Npoi 读取不到带有公式的单元格数据](https://q.cnblogs.com/q/75177/)
+
