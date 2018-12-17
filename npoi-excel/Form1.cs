@@ -131,37 +131,32 @@ namespace npoi_excel
             file_order.order_number = sheet.GetRow(1).GetCell(1).ToString();    //读取订单号（B2）
             file_order.order_name = sheet.GetRow(1).GetCell(4).ToString();      //读取变电站或馈线名称（E2）
             file_order.order_shipping_info = sheet.GetRow(3).GetCell(1).ToString() + sheet.GetRow(3).GetCell(2).ToString() + sheet.GetRow(3).GetCell(3).ToString() + sheet.GetRow(3).GetCell(4).ToString();     //读取发货地址及联系人（B4）
-            
-            IRow[] row = new IRow[4];
-            ICell[] cell = new ICell[4];
-            for (int i = 0; i < 4; i++)
+
+            string[] num_temp = new string[5];
+            IRow[] row = new IRow[5];
+            ICell[] cell = new ICell[5];
+            for (int i = 0; i < 5; i++)
             {
-                row[i] = sheet.GetRow(5 + i);
+                row[i] = sheet.GetRow(4 + i);
                 cell[i] = row[i].GetCell(1);
-            }
-            for (int i = 0; i < 4; i++)
-            {
                 if (cell[i].CellType == CellType.Formula)   //判断是否需要计算公式
                 {
-                    HSSFFormulaEvaluator e = new HSSFFormulaEvaluator(cell[i].Sheet.Workbook);
-                    e.EvaluateInCell(cell[i]);
-                    file_order.order_A_number = cell[i].ToString();
+                    num_temp[i] = cell[i].NumericCellValue.ToString();
+                }
+                else
+                {
+                    num_temp[i] = cell[i].ToString();
                 }
             }
 
-            file_order.order_A_number = cell[0].ToString();
-            file_order.order_B_number = cell[1].ToString();
-            file_order.order_C_number = cell[2].ToString();
-            file_order.order_D_number = cell[3].ToString();
-            file_order.order_sum_number = sheet.GetRow(4).GetCell(1).ToString();
+            file_order.order_sum_number = num_temp[0].ToString();
+            file_order.order_A_number = num_temp[1].ToString();
+            file_order.order_B_number = num_temp[2].ToString();
+            file_order.order_C_number = num_temp[3].ToString();
+            file_order.order_D_number = num_temp[4].ToString();
             
             workbook.Close();
             return file_order;
-        }
-
-        private string get_CellNumber(int v1, int v2)
-        {
-            throw new NotImplementedException();
         }
 
         private XSSFSheet write_HandoverToExcel(XSSFSheet sheet, Order_t file_order)
