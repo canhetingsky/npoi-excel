@@ -9,6 +9,7 @@ using System.Threading;
 using System.Collections;
 using System.Runtime.InteropServices;
 using System.Drawing.Printing;
+using System.Collections.Generic;
 //using Spire.Xls;
 
 namespace npoi_excel
@@ -32,8 +33,9 @@ namespace npoi_excel
         private string folderPath = null;   //要处理的目标文件夹
         private string[] fileNames = null;   //目标文件夹下的所有符合文件
         private int serialNumber = 0 ;      //序号，自增
-        private int initialSerialNumber = 1;
+        private int initialSerialNumber = 1;    //初始序号，默认为1
         new Thread Handle;   //处理excel的线程
+
         public Form1()
         {
             InitializeComponent();
@@ -70,14 +72,14 @@ namespace npoi_excel
             skinProgressBar1.Maximum = fileNames.Length;
 
             string[] subPath = new string[2];
-            subPath[0] = folderPath + "/实物ID箱签(4个信息)/";
-            subPath[1] = folderPath + "/实物ID箱签(3个信息)/";
+            subPath[0] = folderPath + "/实物ID箱签/";
+            subPath[1] = folderPath + "/实物ID箱签/";
             foreach (string item in subPath)
             {
-                if (false == System.IO.Directory.Exists(item))
+                if (false == Directory.Exists(item))
                 {
                     //创建实物ID箱签文件夹
-                    System.IO.Directory.CreateDirectory(item);
+                    Directory.CreateDirectory(item);
                 }
             }
 
@@ -86,6 +88,9 @@ namespace npoi_excel
             timer1.Start();
         }
 
+        /// <summary>
+        /// 文件处理的进程.
+        /// </summary>
         private void startProcessing()
         {
             FileStream modeFile_Handover = new FileStream(@"template\实物ID交接单.xlsx", FileMode.Open, FileAccess.Read);
@@ -106,7 +111,7 @@ namespace npoi_excel
                 write_BoxsignToExcel(order);
             }
 
-            FileStream file_Handover = new FileStream(folderPath + "/" + String.Format("{0:0000}", serialNumber) + "实物ID交接单.xlsx", FileMode.OpenOrCreate);
+            FileStream file_Handover = new FileStream(folderPath + "/" + String.Format("{0:0000}", initialSerialNumber)+"-"+String.Format("{0:0000}", serialNumber) + "实物ID交接单.xls", FileMode.OpenOrCreate);
             workbook_Handover.Write(file_Handover);
             file_Handover.Close();
             workbook_Handover.Close();
@@ -132,119 +137,194 @@ namespace npoi_excel
             file_order.order_name = sheet.GetRow(1).GetCell(4).ToString();      //读取变电站或馈线名称（E2）
             file_order.order_shipping_info = sheet.GetRow(3).GetCell(1).ToString() + sheet.GetRow(3).GetCell(2).ToString() + sheet.GetRow(3).GetCell(3).ToString() + sheet.GetRow(3).GetCell(4).ToString();     //读取发货地址及联系人（B4）
 
-            string[] num_temp = new string[5];
+            string[] order_number = new string[5];
             IRow[] row = new IRow[5];
             ICell[] cell = new ICell[5];
             for (int i = 0; i < 5; i++)
             {
                 row[i] = sheet.GetRow(4 + i);
                 cell[i] = row[i].GetCell(1);
-                if (cell[i].CellType == CellType.Formula)   //判断是否需要计算公式
+
+                //判断是否需要计算公式
+                string num = cell[i].CellType == CellType.Formula ? num = cell[i].NumericCellValue.ToString() : cell[i].ToString();
+
+                if (num == "")
                 {
-                    num_temp[i] = cell[i].NumericCellValue.ToString();
+                    order_number[i] = "0";
+                    string info = file_order.order_number + "标签数量存在空值，请检查！";
+                    Logger.AddLogToTXT(info, folderPath + "/log.txt");
                 }
                 else
                 {
-                    num_temp[i] = cell[i].ToString();
+                    order_number[i] = num;
                 }
             }
 
-            file_order.order_sum_number = num_temp[0].ToString();
-            file_order.order_A_number = num_temp[1].ToString();
-            file_order.order_B_number = num_temp[2].ToString();
-            file_order.order_C_number = num_temp[3].ToString();
-            file_order.order_D_number = num_temp[4].ToString();
-            
+            file_order.order_sum_number = order_number[0].ToString();
+            file_order.order_A_number = order_number[1].ToString();
+            file_order.order_B_number = order_number[2].ToString();
+            file_order.order_C_number = order_number[3].ToString();
+            file_order.order_D_number = order_number[4].ToString();
+
+            //标签数量校验
+            try
+            {
+                if (Convert.ToInt32(order_number[0]) != (
+                    Convert.ToInt32(order_number[1])
+                     + Convert.ToInt32(order_number[2])
+                     + Convert.ToInt32(order_number[3])
+                     + Convert.ToInt32(order_number[4])))
+                {
+                    string info = file_order.order_number + "标签总数与实际A、B、C、D不符，请检查！";
+                    Logger.AddLogToTXT(info,folderPath+"/log.txt");
+                }
+            }
+            catch (Exception)
+            {
+                string info = file_order.order_number + "标签数量中发现非数字字符";
+                Logger.AddLogToTXT(info, folderPath + "/log.txt");
+            }
+
+            int[] type_num = checkId_FromExcel(sheet, file_order.order_number);
+            string[] type = new string[4] { "A", "B", "C", "D" };
+            for (int i = 0; i < type_num.Length; i++)
+            {
+                if (Convert.ToInt32(order_number[i+1]) != type_num[i])
+                {
+                    string info = file_order.order_number + type[i]+"标签数量不符，请检查！";
+                    Logger.AddLogToTXT(info, folderPath + "/log.txt");
+                }
+            }
+
             workbook.Close();
             return file_order;
         }
 
+        private int[] checkId_FromExcel(ISheet sheet,string sell_number)
+        {
+            int id_count = Convert.ToInt32(sheet.GetRow(4).GetCell(1).NumericCellValue);    //得到标签总数量
+            int error_number = 0;
+            int[] order_number = new int[4] { 0, 0, 0, 0 };
+            for (int i = 0; i < id_count; i++)
+            {
+                try
+                {
+                    string type = sheet.GetRow(10 + i).GetCell(1).ToString();
+                    switch (type)
+                    {
+                        case "A":
+                            order_number[0] += 1;
+                            break;
+                        case "B":
+                            order_number[1] += 1;
+                            break;
+                        case "C":
+                            order_number[2] += 1;
+                            break;
+                        case "D":
+                            order_number[3] += 1;
+                            break;
+                        default:
+                            break;
+                    }
+
+                    string id = sheet.GetRow(10 + i).GetCell(2).ToString();
+                    if (check_Id(id) == false)
+                    {
+                        string info = sell_number + "实物ID序号" + (i + 1) + "可能有误，请检查！";
+                        Logger.AddLogToTXT(info, folderPath + "/log.txt");
+                        error_number++;
+                    }
+                }
+                catch (Exception)
+                {
+                    string info = sell_number + "实物ID序号" + (i + 1) + "引发程序异常，请核对！";
+                    Logger.AddLogToTXT(info, folderPath + "/log.txt");
+                    error_number++;
+                }
+            }
+            return order_number;
+        }
+
+        private bool check_Id(string v)
+        {
+            if (v == null || v.Length != 24)    //验证这个参数是否为空
+                return false;                           //是，就返回False
+            //使用ASCII码提取数字
+            foreach (char c in v)
+            {
+                if (Convert.ToInt32(c) < 48 || Convert.ToInt32(c) > 57)
+                {
+                    return false;
+                }
+            }
+            return true;
+        }
+
         private XSSFSheet write_HandoverToExcel(XSSFSheet sheet, Order_t file_order)
         {
-            sheet.GetRow(2 + 4 * (serialNumber - initialSerialNumber + 1)).GetCell(0).SetCellValue(String.Format("{0:0000}", serialNumber));     //填写序号（A*）
-            sheet.GetRow(2 + 4 * (serialNumber - initialSerialNumber + 1)).GetCell(1).SetCellValue(file_order.order_number);          //填写订单编号（B*）
+            sheet.GetRow(7 + (serialNumber - initialSerialNumber + 1)).GetCell(0).SetCellValue(file_order.order_number);          //填写订单编号（A*）
 
-            string[] str = { " ", "；" };
-            string[] string_split_word = order.order_shipping_info.Split(str, StringSplitOptions.RemoveEmptyEntries);
-            if (string_split_word.Length == 4)
+            string[] order_num = new string[4];
+            order_num[0] = file_order.order_A_number;
+            order_num[1] = file_order.order_B_number;
+            order_num[2] = file_order.order_C_number;
+            order_num[3] = file_order.order_D_number;
+
+            for (int i = 0; i < order_num.Length; i++)
             {
-                sheet.GetRow(2 + 4 * (serialNumber - initialSerialNumber + 1)).GetCell(2).SetCellValue(string_split_word[1]);                   //填写收货人姓名（C*）
+                sheet.GetRow(7 + (serialNumber - initialSerialNumber + 1)).GetCell(3+i).SetCellValue(Convert.ToInt32(order_num[i]));    //填写A、B、C、D型标签数量（D*、E*、F*、G*）
+
+                string num = sheet.GetRow(2 + i).GetCell(5).ToString();
+                if (num == "")
+                {
+                    num = "0";
+                }
+                int count = Convert.ToInt32(num) + Convert.ToInt32(order_num[i]);
+                sheet.GetRow(2 + i).GetCell(5).SetCellValue(count);
             }
-            else if (string_split_word.Length == 3) //无收货单位
-            {
-                sheet.GetRow(2 + 4 * (serialNumber - initialSerialNumber + 1)).GetCell(2).SetCellValue(string_split_word[1]);                   //填写收货人姓名（C*）
-            }
-            sheet.GetRow(2 + 4 * (serialNumber - initialSerialNumber + 1)).GetCell(3).SetCellValue("A型标签");        //填写A型标签文本（D*）
-            sheet.GetRow(2 + 4 * (serialNumber - initialSerialNumber + 1)).GetCell(5).SetCellValue(file_order.order_A_number);        //填写A型标签数量（F*）
-            sheet.GetRow(2 + 4 * (serialNumber - initialSerialNumber + 1) + 1).GetCell(3).SetCellValue("B型标签");               //填写B型标签文本（D*）
-            sheet.GetRow(2 + 4 * (serialNumber - initialSerialNumber + 1) + 1).GetCell(5).SetCellValue(file_order.order_B_number);    //填写B型标签数量（F*）
-            sheet.GetRow(2 + 4 * (serialNumber - initialSerialNumber + 1) + 2).GetCell(3).SetCellValue("C型标签");               //填写C型标签文本（D*）
-            sheet.GetRow(2 + 4 * (serialNumber - initialSerialNumber + 1) + 2).GetCell(5).SetCellValue(file_order.order_C_number);    //填写C型标签数量（F*）
-            sheet.GetRow(2 + 4 * (serialNumber - initialSerialNumber + 1) + 3).GetCell(3).SetCellValue("D型标签");              //填写D型标签文本（D*）
-            sheet.GetRow(2 + 4 * (serialNumber - initialSerialNumber + 1) + 3).GetCell(5).SetCellValue(file_order.order_D_number);              //填写D型标签数量（F*）
-            sheet.GetRow(2 + 4 * (serialNumber - initialSerialNumber + 1)).GetCell(4).SetCellValue("1/1");     //填写箱号（E*）
+            
+
             return sheet;
         }
         private void write_BoxsignToExcel(Order_t order)
         {
-            write_BoxsignToExcel_template(0, order);    //0：对应箱贴的模板0
-            write_BoxsignToExcel_template(1, order);    //1：对应箱贴的模板1
-        }
-
-        private void write_BoxsignToExcel_template(int boxsign_template, Order_t order)
-        {
             FileStream modeFile_Boxsign = null;
-            if (boxsign_template == 0)
-            {
-                modeFile_Boxsign = new FileStream(@"template\实物ID箱签0.xlsx", FileMode.Open, FileAccess.Read);
-            }
-            else if (boxsign_template == 1)
-            {
-                modeFile_Boxsign = new FileStream(@"template\实物ID箱签1.xlsx", FileMode.Open, FileAccess.Read);
-            }
-            
+            modeFile_Boxsign = new FileStream(@"template\实物ID箱签.xlsx", FileMode.Open, FileAccess.Read);
+
             XSSFWorkbook workbook_Boxsign = new XSSFWorkbook(modeFile_Boxsign);
             modeFile_Boxsign.Close();
             XSSFSheet modeSheet_Boxsign = (XSSFSheet)workbook_Boxsign.GetSheetAt(0); //获取工作表
             
+            
+
+            modeSheet_Boxsign.GetRow(0).GetCell(1).SetCellValue(String.Format("{0:0000}", serialNumber));     //填写序号(B1)
+            modeSheet_Boxsign.GetRow(7).GetCell(1).SetCellValue(Convert.ToInt32(order.order_A_number));       //填写A型标签数量（B8）
+            modeSheet_Boxsign.GetRow(8).GetCell(1).SetCellValue(Convert.ToInt32(order.order_B_number));       //填写B型标签数量（B9）
+            modeSheet_Boxsign.GetRow(9).GetCell(1).SetCellValue(Convert.ToInt32(order.order_C_number));       //填写C型标签数量（B10）
+            modeSheet_Boxsign.GetRow(10).GetCell(1).SetCellValue(Convert.ToInt32(order.order_D_number));      //填写D型标签数量（B11）
+
+            modeSheet_Boxsign.GetRow(2).GetCell(1).SetCellValue(order.order_number);     //填写订单编号（B3）
+            modeSheet_Boxsign.GetRow(0).GetCell(3).SetCellValue(order.order_name);       //填写变电站或馈线名称(D1)
+
             string[] str = { " ", "；" };
             string[] string_split_word = order.order_shipping_info.Split(str, StringSplitOptions.RemoveEmptyEntries);
 
-            modeSheet_Boxsign.GetRow(0).GetCell(1).SetCellValue(String.Format("{0:0000}", serialNumber));     //填写序号(B1)
-            modeSheet_Boxsign.GetRow(7).GetCell(1).SetCellValue(order.order_A_number);       //填写A型标签数量（B8）
-            modeSheet_Boxsign.GetRow(8).GetCell(1).SetCellValue(order.order_B_number);       //填写B型标签数量（B9）
-            modeSheet_Boxsign.GetRow(9).GetCell(1).SetCellValue(order.order_C_number);       //填写C型标签数量（B10）
-            modeSheet_Boxsign.GetRow(10).GetCell(1).SetCellValue(order.order_D_number);      //填写D型标签数量（B11）
-
-            if (boxsign_template == 0)
+            if (string_split_word.Length == 4)
             {
-                modeSheet_Boxsign.GetRow(1).GetCell(1).SetCellValue(order.order_number);     //填写订单编号（B2）
-                modeSheet_Boxsign.GetRow(0).GetCell(4).SetCellValue(order.order_name);       //填写变电站或馈线名称(E1)
-
-                modeSheet_Boxsign.GetRow(2).GetCell(1).SetCellValue(string_split_word[0]);   //填写收货公司（B3）
-                modeSheet_Boxsign.GetRow(4).GetCell(1).SetCellValue(string_split_word[3]);   //填写收货地址（B5）
-                modeSheet_Boxsign.GetRow(5).GetCell(1).SetCellValue(string_split_word[1]);   //填写联系人(B6)
-                modeSheet_Boxsign.GetRow(5).GetCell(4).SetCellValue(string_split_word[2]);   //填写电话(E6)
-            }
-            else if (boxsign_template == 1)
-            {
-                modeSheet_Boxsign.GetRow(2).GetCell(1).SetCellValue(order.order_number);     //填写订单编号（B3）
-                modeSheet_Boxsign.GetRow(0).GetCell(3).SetCellValue(order.order_name);       //填写变电站或馈线名称(D1)
-
                 modeSheet_Boxsign.GetRow(4).GetCell(1).SetCellValue(string_split_word[0] + string_split_word[3]);   //填写收货地址及收货公司（B5）
                 modeSheet_Boxsign.GetRow(5).GetCell(1).SetCellValue(string_split_word[1]);   //填写联系人(B6)
                 modeSheet_Boxsign.GetRow(5).GetCell(3).SetCellValue(string_split_word[2]);   //填写电话(D6)
             }
+            else
+            {
+                string info = order.order_number + "收货信息格式不符，请检查！";
+                Logger.AddLogToTXT(info, folderPath + "/log.txt");
+            }
             
             FileStream file_Boxsign = null;
-            if (boxsign_template == 0)
-            {
-                file_Boxsign = new FileStream(folderPath + "/实物ID箱签(4个信息)/ " + String.Format("{0:0000}", serialNumber) + "-" + order.order_number + "-实物ID箱签.xlsx", FileMode.Create);
-            }
-            else if (boxsign_template == 1)
-            {
-                file_Boxsign = new FileStream(folderPath + "/实物ID箱签(3个信息)/ " + String.Format("{0:0000}", serialNumber) + "-" + order.order_number + "-实物ID箱签.xlsx", FileMode.Create);
-            }
+            file_Boxsign = new FileStream(folderPath + "/实物ID箱签/" + String.Format("{0:0000}", serialNumber) + "-" + order.order_number + "-实物ID箱签.xls", FileMode.Create);
+     
             workbook_Boxsign.Write(file_Boxsign);
             file_Boxsign.Close();
             workbook_Boxsign.Close();
