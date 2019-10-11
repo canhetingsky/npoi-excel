@@ -146,7 +146,7 @@ namespace npoi_excel
                 cell[i] = row[i].GetCell(1);
 
                 //判断是否需要计算公式
-                string num = cell[i].CellType == CellType.Formula ? num = cell[i].NumericCellValue.ToString() : cell[i].ToString();
+                string num = cell[i].CellType == CellType.Formula ? cell[i].NumericCellValue.ToString() : cell[i].ToString();
 
                 if (num == "")
                 {
@@ -179,9 +179,9 @@ namespace npoi_excel
                     Logger.AddLogToTXT(info,folderPath+"/log.txt");
                 }
             }
-            catch (Exception)
+            catch (Exception e)
             {
-                string info = file_order.order_number + "标签数量中发现非数字字符";
+                string info = file_order.order_number + "标签数量中发现非数字字符" + e.ToString();
                 Logger.AddLogToTXT(info, folderPath + "/log.txt");
             }
 
@@ -189,9 +189,10 @@ namespace npoi_excel
             string[] type = new string[4] { "A", "B", "C", "D" };
             for (int i = 0; i < type_num.Length; i++)
             {
-                if (Convert.ToInt32(order_number[i+1]) != type_num[i])
+                int num = Convert.ToInt32(order_number[i + 1]);
+                if (num != type_num[i])
                 {
-                    string info = file_order.order_number + type[i]+"标签数量不符，请检查！";
+                    string info = string.Format("{0}:{1}标签数量不符，请检查！{2}-{3}", file_order.order_number, type[i],num,type_num[i]);
                     Logger.AddLogToTXT(info, folderPath + "/log.txt");
                 }
             }
@@ -202,14 +203,18 @@ namespace npoi_excel
 
         private int[] checkId_FromExcel(ISheet sheet,string sell_number)
         {
-            int id_count = Convert.ToInt32(sheet.GetRow(4).GetCell(1).NumericCellValue);    //得到标签总数量
+            ICell cell = sheet.GetRow(4).GetCell(1);
+            //判断是否需要计算公式
+            string num = cell.CellType == CellType.Formula ? cell.NumericCellValue.ToString() : cell.ToString();
+            int id_count = Convert.ToInt32(num);    //得到标签总数量
+
             int error_number = 0;
             int[] order_number = new int[4] { 0, 0, 0, 0 };
             for (int i = 0; i < id_count; i++)
             {
                 try
                 {
-                    string type = sheet.GetRow(10 + i).GetCell(1).ToString();
+                    string type = sheet.GetRow(10 + i).GetCell(1).ToString().Trim();
                     switch (type)
                     {
                         case "A":
@@ -225,6 +230,7 @@ namespace npoi_excel
                             order_number[3] += 1;
                             break;
                         default:
+                            Debug.WriteLine(string.Format("错误型号：{0}", type));
                             break;
                     }
 
