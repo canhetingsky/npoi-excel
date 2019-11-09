@@ -35,6 +35,7 @@ namespace npoi_excel
         private int serialNumber = 0 ;      //序号，自增
         private int initialSerialNumber = 1;    //初始序号，默认为1
         new Thread Handle;   //处理excel的线程
+        private string suffix =null;  //生成文件的后缀名
 
         public Form1()
         {
@@ -48,6 +49,8 @@ namespace npoi_excel
             btnPrintBoxsign.Enabled = false;
             btnPrintHandover.Enabled = false;
             txbSerialNumber.Text = initialSerialNumber.ToString();
+
+            comboBox1.SelectedIndex = 0;
         }
         private void btnStart_Click(object sender, EventArgs e)
         {
@@ -111,7 +114,7 @@ namespace npoi_excel
                 write_BoxsignToExcel(order);
             }
 
-            FileStream file_Handover = new FileStream(folderPath + "/" + String.Format("{0:0000}", initialSerialNumber)+"-"+String.Format("{0:0000}", serialNumber) + "实物ID交接单.xls", FileMode.OpenOrCreate);
+            FileStream file_Handover = new FileStream(folderPath + "/" + String.Format("{0:0000}", initialSerialNumber)+"-"+String.Format("{0:0000}", serialNumber) + "实物ID交接单"+ suffix, FileMode.OpenOrCreate);
             workbook_Handover.Write(file_Handover);
             file_Handover.Close();
             workbook_Handover.Close();
@@ -327,10 +330,8 @@ namespace npoi_excel
                 string info = order.order_number + "收货信息格式不符，请检查！";
                 Logger.AddLogToTXT(info, folderPath + "/log.txt");
             }
-            
-            FileStream file_Boxsign = null;
-            file_Boxsign = new FileStream(folderPath + "/实物ID箱签/" + String.Format("{0:0000}", serialNumber) + "-" + order.order_number + "-实物ID箱签.xls", FileMode.Create);
-     
+            FileStream file_Boxsign = new FileStream(folderPath + "/实物ID箱签/" + string.Format("{0:0000}", serialNumber) + "-" + order.order_number + "-实物ID箱签"+ suffix, FileMode.Create);
+
             workbook_Boxsign.Write(file_Boxsign);
             file_Boxsign.Close();
             workbook_Boxsign.Close();
@@ -384,6 +385,11 @@ namespace npoi_excel
             {
                 timer1.Stop();
             }
+        }
+
+        private void comboBox1_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            suffix = comboBox1.SelectedItem.ToString();
         }
     }
 }
