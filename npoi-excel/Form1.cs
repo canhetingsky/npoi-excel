@@ -252,6 +252,22 @@ namespace npoi_excel
                     error_number++;
                 }
             }
+
+            //检查总数量是否少了
+            try
+            {
+                string type = sheet.GetRow(10 + id_count).GetCell(1).ToString().Trim();
+                if (type != "")
+                { 
+                    string info = sell_number + "总数量可能有误：" + type + "数量可能有误，请检查！";
+                    Logger.AddLogToTXT(info, folderPath + "/log.txt");
+                }
+            }
+            catch (Exception)
+            {
+
+            }
+
             return order_number;
         }
 
