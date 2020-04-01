@@ -320,17 +320,33 @@ namespace npoi_excel
             XSSFWorkbook workbook_Boxsign = new XSSFWorkbook(modeFile_Boxsign);
             modeFile_Boxsign.Close();
             XSSFSheet modeSheet_Boxsign = (XSSFSheet)workbook_Boxsign.GetSheetAt(0); //获取工作表
-            
-            
 
-            modeSheet_Boxsign.GetRow(0).GetCell(1).SetCellValue(String.Format("{0:0000}", serialNumber));     //填写序号(B1)
+            if (Convert.ToInt32(order.order_A_number) ==0)
+            {
+                modeSheet_Boxsign.GetRow(7).GetCell(0).SetCellValue("A型标签");       //A型标签成品编号修改（A8）
+            }
+            if (Convert.ToInt32(order.order_B_number) == 0)
+            {
+                modeSheet_Boxsign.GetRow(8).GetCell(0).SetCellValue("B型标签");       //B型标签成品编号修改（A9）
+            }
+            if (Convert.ToInt32(order.order_C_number) == 0)
+            {
+                modeSheet_Boxsign.GetRow(9).GetCell(0).SetCellValue("C型标签");       //C型标签成品编号修改（A10）
+            }
+            if (Convert.ToInt32(order.order_D_number) == 0)
+            {
+                modeSheet_Boxsign.GetRow(10).GetCell(0).SetCellValue("D型标签");       //D型标签成品编号修改（A11）
+            }
+
+            //modeSheet_Boxsign.GetRow(0).GetCell(1).SetCellValue(String.Format("{0:0000}", serialNumber));     //填写序号(B1)
             modeSheet_Boxsign.GetRow(7).GetCell(1).SetCellValue(Convert.ToInt32(order.order_A_number));       //填写A型标签数量（B8）
             modeSheet_Boxsign.GetRow(8).GetCell(1).SetCellValue(Convert.ToInt32(order.order_B_number));       //填写B型标签数量（B9）
             modeSheet_Boxsign.GetRow(9).GetCell(1).SetCellValue(Convert.ToInt32(order.order_C_number));       //填写C型标签数量（B10）
             modeSheet_Boxsign.GetRow(10).GetCell(1).SetCellValue(Convert.ToInt32(order.order_D_number));      //填写D型标签数量（B11）
 
             modeSheet_Boxsign.GetRow(2).GetCell(1).SetCellValue(order.order_number);     //填写订单编号（B3）
-            modeSheet_Boxsign.GetRow(0).GetCell(3).SetCellValue(order.order_name);       //填写变电站或馈线名称(D1)
+            //modeSheet_Boxsign.GetRow(0).GetCell(3).SetCellValue(order.order_name);       //填写变电站或馈线名称(D1)
+            modeSheet_Boxsign.GetRow(0).GetCell(1).SetCellValue(order.order_name);       //填写变电站或馈线名称(B1)
 
             string[] str = { " ", "；" };
             string[] string_split_word = order.order_shipping_info.Split(str, StringSplitOptions.RemoveEmptyEntries);
@@ -346,11 +362,49 @@ namespace npoi_excel
                 string info = order.order_number + "收货信息格式不符，请检查！";
                 Logger.AddLogToTXT(info, folderPath + "/log.txt");
             }
+
+            string[] code = new string[12];
+            code[0] = "051X";
+            code[1] = order.order_number;
+
+            code[2] = order.order_A_number;
+            code[3] = order.order_B_number;
+            code[4] = order.order_C_number;
+            code[5] = order.order_D_number;
+
+            code[6] = GetNumber(modeSheet_Boxsign.GetRow(7).GetCell(0).ToString());
+            code[7] = GetNumber(modeSheet_Boxsign.GetRow(8).GetCell(0).ToString());
+            code[8] = GetNumber(modeSheet_Boxsign.GetRow(9).GetCell(0).ToString());
+            code[9] = GetNumber(modeSheet_Boxsign.GetRow(10).GetCell(0).ToString());
+
+            string[] box = modeSheet_Boxsign.GetRow(9).GetCell(3).ToString().Split('/');
+            code[10] = box[0];
+            code[11] = box[1];
+
+            //格式："051X;PA202432065;2;5;10;13;401;402;403;404;102;2100@"
+            string txt = string.Join(";", code)+"@";    
+
+            #region 向excel中插入图片(二维码)
+            byte[] bytes = QRcode.Encode(txt,50);
+            int pictureIndex = workbook_Boxsign.AddPicture(bytes, PictureType.PNG);
+
+            XSSFClientAnchor anchor = new XSSFClientAnchor(600000, 50000, 0, 0, 3, 6, 4, 9);
+            IDrawing patriarch = modeSheet_Boxsign.CreateDrawingPatriarch();
+            IPicture pict = patriarch.CreatePicture(anchor, pictureIndex);
+            pict.Resize();    //保持图片原来的大小
+            #endregion
+
             FileStream file_Boxsign = new FileStream(folderPath + "/实物ID箱签/" + string.Format("{0:0000}", serialNumber) + "-" + order.order_number + "-实物ID箱签"+ suffix, FileMode.Create);
 
             workbook_Boxsign.Write(file_Boxsign);
             file_Boxsign.Close();
             workbook_Boxsign.Close();
+        }
+
+        public string GetNumber(string str)
+        {
+            string result = System.Text.RegularExpressions.Regex.Replace(str, @"[^0-9]+", "");
+            return result;
         }
 
         private void labelFiles_Click(object sender, EventArgs e)
